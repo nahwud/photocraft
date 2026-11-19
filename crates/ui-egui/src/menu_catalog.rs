@@ -712,6 +712,7 @@ pub static CATALOG: &[(&[&str], &str, Option<&str>, &str)] = &[
     (&["View", "Show"], "Show Extras Options…", None, "view.show.showExtrasOptions"),
     (&["View"], "---", None, "---"),
     (&["View"], "Rulers", Some("Cmd+R"), "view.rulers"),
+    (&["View"], "3D View", None, "view.perspective3d"),
     (&["View"], "---", None, "---"),
     (&["View"], "Snap", Some("Cmd+Shift+;"), "view.snap"),
     (&["View", "Snap To"], "Guides", None, "view.snapTo.guides"),
