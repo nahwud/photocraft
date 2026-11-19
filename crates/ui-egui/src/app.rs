@@ -312,6 +312,7 @@ impl eframe::App for PhotocraftApp {
             self.ui.status_error = true;
         }
         self.ui_frame(ui, frame);
+        crate::perspective_view::show(self, ui.ctx());
         self.finish_type_reset_pass(ui.ctx());
     }
 }
