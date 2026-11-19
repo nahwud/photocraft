@@ -1,0 +1,88 @@
+name: Build 3D View web
+
+# Manual run: Actions tab -> "Build 3D View web" -> Run workflow (branch main).
+# It builds the browser version with packaging/web/package.sh and publishes it to GitHub Pages.
+# One-time setup: repository Settings -> Pages -> Build and deployment -> Source: GitHub Actions.
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages-3dview
+  cancel-in-progress: true
+
+env:
+  TRUNK_VERSION: 0.21.14
+  # A GitHub runner has about 7 GB of RAM: thin LTO and fewer parallel jobs keep the link from
+  # being killed (the same settings packaging/web/README.md gives for small builders).
+  CARGO_PROFILE_WASM_RELEASE_LTO: thin
+  CARGO_PROFILE_WASM_RELEASE_CODEGEN_UNITS: "16"
+  CARGO_BUILD_JOBS: "2"
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 180
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Add swap (more memory for the link step)
+        run: |
+          sudo fallocate -l 8G /mnt/extra.swap
+          sudo chmod 600 /mnt/extra.swap
+          sudo mkswap /mnt/extra.swap
+          sudo swapon /mnt/extra.swap
+          free -h
+
+      - name: Install Rust
+        run: |
+          rustup toolchain install stable --profile minimal --target wasm32-unknown-unknown
+          rustup default stable
+          rustc --version
+
+      - uses: Swatinem/rust-cache@v2
+        with:
+          key: web-3dview
+          cache-on-failure: true
+
+      - name: Install trunk
+        run: |
+          curl --proto '=https' -fsSL "https://github.com/trunk-rs/trunk/releases/download/v${TRUNK_VERSION}/trunk-x86_64-unknown-linux-gnu.tar.gz" \
+            | tar -xz -C "$HOME/.cargo/bin" trunk
+          trunk --version
+
+      - name: Build and package the browser version
+        run: packaging/web/package.sh
+
+      - name: Unpack the site
+        run: |
+          mkdir -p site
+          unzip -q dist/release/photocraft-web-*.zip -d site
+          mv site/photocraft-web-* site/out
+          ls -la site/out
+          touch site/out/.nojekyll
+
+      - name: Keep the zip as a downloadable artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: photocraft-web-zip
+          path: dist/release/photocraft-web-*.zip
+          if-no-files-found: warn
+
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: site/out
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4
