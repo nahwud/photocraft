@@ -711,6 +711,10 @@ fn invoke_view_command(app: &mut PhotocraftApp, ctx: &egui::Context, id: &str, p
         "view.clearSelectedGuides" => {
             Some(crate::guide_select::delete_selected(app).and_then(|done| if done { Ok(Value::Null) } else { Err("No guide is selected".to_string()) }))
         }
+        "view.perspective3d" => {
+    crate::perspective_view::toggle();
+    Some(Ok(json!(crate::perspective_view::is_open())))
+        }
         "view.rulers" | "view.show.grid" | "view.show.guides" | "view.snap" | "view.lockGuides" => {
             let extras = &mut app.ui.extras;
             let slot = match id {
