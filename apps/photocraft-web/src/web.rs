@@ -494,6 +494,7 @@ impl eframe::App for WebShell {
             });
         }
         self.app.ui_frame(ui, frame);
+        photocraft_ui_egui::perspective_view::show(&mut self.app, ui.ctx());
         self.save_presets(ui.ctx());
         self.app.finish_type_reset_pass(ui.ctx());
     }
