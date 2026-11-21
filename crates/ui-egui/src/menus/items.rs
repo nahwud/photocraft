@@ -27,6 +27,7 @@ pub fn is_live(id: &str) -> bool {
         || workspace_name(id).is_some()
         || proof_preset(id).is_some()
         || id == "view.proofSetup.custom"
+    || id == "view.perspective3d"
         || crate::view_cmds::handles(id)
         || crate::analysis_ui::handles(id)
         || crate::workspace_ui::handles(id)
